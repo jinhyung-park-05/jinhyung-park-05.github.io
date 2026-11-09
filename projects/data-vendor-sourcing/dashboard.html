@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Vendor Sourcing Dashboard · Jin Hyung Park</title>
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600|Source+Sans+Pro:300,400,600" rel="stylesheet">
+<style>
+.viz-root{color-scheme:light;
+  --navy:#2d3149;--navy-2:#364f67;--lavender:#8d94ba;--lavender-2:#60689f;--pink:#ff789e;--mist:#cfd2e2;
+  --page:#eef0f6;--card:#ffffff;--rule:#e3e4ee;--grid:#ebecf3;
+  --text-primary:#2d3149;--text-secondary:#5a5f7d;--text-muted:#8a8ea8;
+  --series-1:#3a6cc0;--series-2:#ff789e;--series-3:#1baf7a;--flag:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;background:#eef0f6}
+.viz-root{min-height:100vh;background:var(--page);color:var(--text-primary);font:14px/1.45 'Source Sans Pro',system-ui,sans-serif}
+.topbar{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font:600 12px 'Open Sans',sans-serif;letter-spacing:2px;color:var(--mist);text-decoration:none}
+.title{font:400 20px 'Open Sans',sans-serif;text-transform:uppercase;letter-spacing:.5px;margin:2px 0 0}
+.dot{display:inline-block;width:8px;height:8px;margin-left:6px;background:var(--pink)}
+.badge{border:1px solid var(--mist);color:var(--mist);border-radius:999px;padding:3px 12px;font:12px 'Open Sans',sans-serif}
+.filters{background:var(--navy-2);padding:10px 24px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;color:#fff;font:13px 'Open Sans',sans-serif}
+.filters label{color:var(--mist);margin-right:6px}
+.chip{border:1px solid var(--mist);background:transparent;color:#fff;border-radius:999px;padding:4px 12px;font:13px 'Open Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-right:4px}
+.chip[aria-pressed="false"]{opacity:.45}
+.chip .sw{width:9px;height:9px;border-radius:0;display:inline-block}
+select{background:var(--navy);color:#fff;border:1px solid var(--mist);border-radius:6px;padding:4px 8px;font:13px 'Open Sans',sans-serif}
+main{max-width:1240px;margin:0 auto;padding:20px 24px 32px}
+.kpis{display:grid;gap:14px;grid-template-columns:repeat(5,1fr);margin-bottom:14px}
+.kpi{background:var(--card);border-radius:0;padding:14px 16px;border-left:4px solid var(--pink);box-shadow:0 1px 2px rgba(45,49,73,.08)}
+.kpi .label{font:12px 'Open Sans',sans-serif;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+.kpi .value{font:600 24px 'Open Sans',sans-serif;margin-top:4px;color:var(--navy)}
+.kpi .detail{font-size:12px;color:var(--text-muted)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(6,1fr)}
+.card{background:var(--card);border-radius:0;padding:14px 16px;box-shadow:0 1px 2px rgba(45,49,73,.08);min-width:0}
+.span2{grid-column:span 2}.span3{grid-column:span 3}.span4{grid-column:span 4}.span6{grid-column:span 6}
+.card h2{font:400 15px 'Open Sans',sans-serif;color:var(--navy);margin:0 0 2px;display:inline-block;padding-bottom:3px;border-bottom:2px solid var(--pink)}
+.card .note{font-size:12px;color:var(--text-muted);margin:4px 0 8px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--text-secondary);font-size:11px;font-family:'Source Sans Pro',sans-serif}
+svg .val{fill:var(--text-primary);font-weight:600}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);margin:4px 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:0;display:inline-block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:right;padding:6px;border-bottom:1px solid var(--rule);white-space:nowrap}
+th{color:var(--text-secondary);font-weight:600;white-space:normal;vertical-align:bottom}
+th:first-child,td:first-child{text-align:left}
+td.win{font-weight:700;color:var(--navy)}
+.scroll{overflow-x:auto}
+.flag{color:var(--flag);font-weight:600}
+.small-mult{display:grid;gap:14px;grid-template-columns:repeat(3,1fr)}
+.empty{color:var(--text-muted);font-size:13px;padding:18px 0;text-align:center}
+footer{background:var(--navy);color:var(--mist);text-align:center;padding:14px;font:12px 'Open Sans',sans-serif}
+footer a{color:#fff}
+.tip{position:fixed;pointer-events:none;background:#fff;border:1px solid var(--rule);border-radius:0;padding:8px 10px;font-size:12px;
+  box-shadow:0 4px 14px rgba(45,49,73,.18);opacity:0;transition:opacity .1s;max-width:240px;color:var(--text-primary);z-index:10}
+.tip b{display:block;margin-bottom:2px}
+@media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.span2,.span3,.span4,.span6{grid-column:auto}.small-mult{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="viz-root">
+  <header class="topbar">
+    <div><a class="brand" href="https://jinhyung-park-05.github.io/">JIN HYUNG PARK</a>
+      <div class="title">Data Vendor Sourcing<span class="dot"></span></div></div>
+    <span class="badge">Simulated data · fictional vendors</span>
+  </header>
+  <div class="filters">
+    <div><label>Vendors</label><span id="chips"></span></div>
+    <div><label for="weights">Scorecard weights</label><select id="weights"></select></div>
+    <div id="period" style="color:var(--mist)"></div>
+  </div>
+  <main>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card span3"><h2>Cost per accepted task</h2><p class="note">Price ÷ estimated acceptance rate</p><div id="c-cpat"></div></div>
+      <div class="card span3"><h2>Eval lift per $1,000</h2><p class="note">Held-out eval points gained per $1k spent</p><div id="c-lift"></div></div>
+      <div class="card span3"><h2>Gold-set accuracy</h2><p class="note">Dot = estimate · line = 95% interval</p><div id="c-gold"></div></div>
+      <div class="card span3"><h2>Annotator agreement (Cohen's κ)</h2><p class="note">On double-labeled tasks</p><div id="c-kappa"></div></div>
+      <div class="card span6"><h2>Daily delivery vs target</h2><p class="note">Solid = delivered · dashed = daily target</p><div class="small-mult" id="c-daily"></div></div>
+      <div class="card span4"><h2>Vendor scorecard</h2><p class="note" id="weights-note"></p><div class="scroll"><table id="t-score"></table></div></div>
+      <div class="card span2"><h2>Annotator flags</h2><p class="note">Gold acc. &lt; 65% or time &lt; 50% of vendor median</p><div class="scroll"><table id="t-flags"></table></div></div>
+    </div>
+  </main>
+  <footer>© Jin Hyung Park · simulated data · built with AI assistance (Claude) · <a href="https://github.com/jinhyung-park-05/human-data-sourcing">code</a></footer>
+  <div class="tip" id="tip"></div>
+</div>
+<script>
+const D = {"sensitivity": [{"scenario": "Default 50/25/25", "Vendor Alpha": 86.4, "Vendor Beta": 94.0, "Vendor Gamma": 90.2}, {"scenario": "Equal 33/33/33", "Vendor Alpha": 90.9, "Vendor Beta": 94.0, "Vendor Gamma": 86.9}, {"scenario": "Cost-heavy 25/25/50", "Vendor Alpha": 93.2, "Vendor Beta": 92.4, "Vendor Gamma": 82.3}, {"scenario": "Quality-heavy 70/15/15", "Vendor Alpha": 81.0, "Vendor Beta": 94.1, "Vendor Gamma": 94.1}], "totals": {"tasks": 3600, "labels": 4092, "annotators": 24, "gold_items": 274, "overlap_tasks": 492, "audits": 364, "first_day": "2026-10-05", "last_day": "2026-10-23"}, "weights": {"quality": 0.5, "delivery": 0.25, "cost": 0.25}, "quality_split": {"gold_accuracy": 0.7, "agreement": 0.3}, "baseline_eval": 62.0, "vendors": [{"vendor_id": "V1", "vendor": "Vendor Alpha", "labels": 1714, "price_per_task": 3.1, "spend": 5313.4, "gold_items": 118, "gold_accuracy": 0.7627, "gold_acc_ci_low": 0.6784, "gold_acc_ci_high": 0.8304, "overlap_pairs": 214, "kappa": 0.3585, "audits": 137, "audit_pass_rate": 0.6715, "est_acceptance_rate": 0.7137, "cost_per_accepted_task": 4.3434, "on_time_day_rate": 0.8667, "volume_vs_commit": 1.0, "median_secs": 136.5, "eval_score": 63.04, "eval_lift_pts": 1.04, "lift_per_1k_usd": 0.1957, "q_score": 72.8225, "d_score": 100.0, "c_score": 100.0, "total_score": 86.4112, "target_price_to_match_best": 3.1, "price_change_needed_pct": -0.0}, {"vendor_id": "V2", "vendor": "Vendor Beta", "labels": 1354, "price_per_task": 4.2, "spend": 5686.8, "gold_items": 87, "gold_accuracy": 0.8621, "gold_acc_ci_low": 0.7742, "gold_acc_ci_high": 0.9193, "overlap_pairs": 154, "kappa": 0.7222, "audits": 118, "audit_pass_rate": 0.839, "est_acceptance_rate": 0.8488, "cost_per_accepted_task": 4.9483, "on_time_day_rate": 0.8667, "volume_vs_commit": 1.0, "median_secs": 159.95, "eval_score": 63.73, "eval_lift_pts": 1.73, "lift_per_1k_usd": 0.3042, "q_score": 94.1601, "d_score": 100.0, "c_score": 87.7762, "total_score": 94.0241, "target_price_to_match_best": 3.6866, "price_change_needed_pct": -12.2238}, {"vendor_id": "V3", "vendor": "Vendor Gamma", "labels": 1024, "price_per_task": 5.6, "spend": 5734.4, "gold_items": 69, "gold_accuracy": 0.8986, "gold_acc_ci_low": 0.8051, "gold_acc_ci_high": 0.95, "overlap_pairs": 124, "kappa": 0.8023, "audits": 109, "audit_pass_rate": 0.8716, "est_acceptance_rate": 0.882, "cost_per_accepted_task": 6.349, "on_time_day_rate": 0.8, "volume_vs_commit": 1.0, "median_secs": 198.05, "eval_score": 63.4, "eval_lift_pts": 1.4, "lift_per_1k_usd": 0.2441, "q_score": 100.0, "d_score": 92.3077, "c_score": 68.4104, "total_score": 90.1795, "target_price_to_match_best": 3.831, "price_change_needed_pct": -31.5896}], "flagged_annotators": [{"annotator_id": "V1-A10", "vendor_id": "V1", "labels": 179, "gold_items": 13, "gold_accuracy": 0.462, "median_secs": 34.6, "speed_vs_vendor": 0.253, "flag_low_accuracy": true, "flag_too_fast": true, "flag": "Low accuracy + too fast: likely low effort"}], "daily": [{"vendor_id": "V1", "date": "2026-10-05", "target": 100, "delivered": 104}, {"vendor_id": "V1", "date": "2026-10-06", "target": 100, "delivered": 109}, {"vendor_id": "V1", "date": "2026-10-07", "target": 100, "delivered": 106}, {"vendor_id": "V1", "date": "2026-10-08", "target": 100, "delivered": 107}, {"vendor_id": "V1", "date": "2026-10-09", "target": 100, "delivered": 106}, {"vendor_id": "V1", "date": "2026-10-12", "target": 100, "delivered": 103}, {"vendor_id": "V1", "date": "2026-10-13", "target": 100, "delivered": 105}, {"vendor_id": "V1", "date": "2026-10-14", "target": 100, "delivered": 101}, {"vendor_id": "V1", "date": "2026-10-15", "target": 100, "delivered": 109}, {"vendor_id": "V1", "date": "2026-10-16", "target": 100, "delivered": 104}, {"vendor_id": "V1", "date": "2026-10-19", "target": 100, "delivered": 100}, {"vendor_id": "V1", "date": "2026-10-20", "target": 100, "delivered": 70}, {"vendor_id": "V1", "date": "2026-10-21", "target": 100, "delivered": 103}, {"vendor_id": "V1", "date": "2026-10-22", "target": 100, "delivered": 63}, {"vendor_id": "V1", "date": "2026-10-23", "target": 100, "delivered": 110}, {"vendor_id": "V2", "date": "2026-10-05", "target": 80, "delivered": 84}, {"vendor_id": "V2", "date": "2026-10-06", "target": 80, "delivered": 81}, {"vendor_id": "V2", "date": "2026-10-07", "target": 80, "delivered": 88}, {"vendor_id": "V2", "date": "2026-10-08", "target": 80, "delivered": 52}, {"vendor_id": "V2", "date": "2026-10-09", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-12", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-13", "target": 80, "delivered": 81}, {"vendor_id": "V2", "date": "2026-10-14", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-15", "target": 80, "delivered": 83}, {"vendor_id": "V2", "date": "2026-10-16", "target": 80, "delivered": 85}, {"vendor_id": "V2", "date": "2026-10-19", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-20", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-21", "target": 80, "delivered": 84}, {"vendor_id": "V2", "date": "2026-10-22", "target": 80, "delivered": 88}, {"vendor_id": "V2", "date": "2026-10-23", "target": 80, "delivered": 64}, {"vendor_id": "V3", "date": "2026-10-05", "target": 60, "delivered": 47}, {"vendor_id": "V3", "date": "2026-10-06", "target": 60, "delivered": 64}, {"vendor_id": "V3", "date": "2026-10-07", "target": 60, "delivered": 64}, {"vendor_id": "V3", "date": "2026-10-08", "target": 60, "delivered": 63}, {"vendor_id": "V3", "date": "2026-10-09", "target": 60, "delivered": 61}, {"vendor_id": "V3", "date": "2026-10-12", "target": 60, "delivered": 62}, {"vendor_id": "V3", "date": "2026-10-13", "target": 60, "delivered": 61}, {"vendor_id": "V3", "date": "2026-10-14", "target": 60, "delivered": 62}, {"vendor_id": "V3", "date": "2026-10-15", "target": 60, "delivered": 60}, {"vendor_id": "V3", "date": "2026-10-16", "target": 60, "delivered": 47}, {"vendor_id": "V3", "date": "2026-10-19", "target": 60, "delivered": 63}, {"vendor_id": "V3", "date": "2026-10-20", "target": 60, "delivered": 62}, {"vendor_id": "V3", "date": "2026-10-21", "target": 60, "delivered": 65}, {"vendor_id": "V3", "date": "2026-10-22", "target": 60, "delivered": 60}, {"vendor_id": "V3", "date": "2026-10-23", "target": 60, "delivered": 59}]};
+const ALL = D.vendors, T = D.totals;
+const COLOR = {V1:"var(--series-1)",V2:"var(--series-2)",V3:"var(--series-3)"};
+const WEIGHTS = {"Default 50/25/25":[.5,.25,.25],"Equal 33/33/33":[1/3,1/3,1/3],"Cost-heavy 25/25/50":[.25,.25,.5],"Quality-heavy 70/15/15":[.7,.15,.15]};
+const state = {on:new Set(ALL.map(v=>v.vendor_id)), weights:"Default 50/25/25"};
+const fmt$=x=>"$"+x.toFixed(2), pct=x=>(100*x).toFixed(1)+"%", num=x=>Math.round(x).toLocaleString();
+const tip=document.getElementById("tip");
+function showTip(e,h){tip.innerHTML=h;tip.style.opacity=1;tip.style.left=Math.min(e.clientX+14,innerWidth-250)+"px";tip.style.top=(e.clientY+14)+"px"}
+function hideTip(){tip.style.opacity=0}
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);if(p)p.appendChild(n);return n}
+function clear(id){const n=document.getElementById(id);n.innerHTML="";return n}
+const score=v=>{const [q,d,c]=WEIGHTS[state.weights];return q*v.q_score+d*v.d_score+c*v.c_score};
+
+// Filters
+document.getElementById("chips").innerHTML=ALL.map(v=>`<button class="chip" aria-pressed="true" data-id="${v.vendor_id}"><span class="sw" style="background:${COLOR[v.vendor_id]}"></span>${v.vendor.replace("Vendor ","")}</button>`).join("");
+document.querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{const id=b.dataset.id;
+  if(state.on.has(id)){if(state.on.size===1)return;state.on.delete(id)}else state.on.add(id);
+  b.setAttribute("aria-pressed",state.on.has(id));render()}));
+const sel=document.getElementById("weights");
+sel.innerHTML=Object.keys(WEIGHTS).map(k=>`<option>${k}</option>`).join("");
+sel.addEventListener("change",()=>{state.weights=sel.value;render()});
+document.getElementById("period").textContent=`Pilot ${T.first_day} → ${T.last_day}`;
+
+function hbar(id,V,key,fmt,tipFn){
+  const box=clear(id),W=460,rowH=34,padL=92,padR=64,H=V.length*rowH+4;
+  const max=Math.max(...ALL.map(v=>v[key]))*1.08;   // fixed scale across filters
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img"},box);
+  const x=v=>padL+(W-padL-padR)*v/max;
+  V.forEach((v,i)=>{const y=i*rowH+6,h=20;
+    el("text",{x:padL-8,y:y+h/2+4,"text-anchor":"end"},svg).textContent=v.vendor;
+    const w=Math.max(2,x(v[key])-padL);
+    el("rect",{x:padL,y,width:w,height:h,fill:COLOR[v.vendor_id]},svg);
+    el("text",{x:padL+w+6,y:y+h/2+4,class:"val"},svg).textContent=fmt(v[key]);
+    const hit=el("rect",{x:0,y:y-6,width:W,height:rowH,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",e=>showTip(e,tipFn(v)));hit.addEventListener("mouseleave",hideTip)});
+}
+function gold(V){const box=clear("c-gold"),W=460,rowH=34,padL=92,padR=64,H=V.length*rowH+28,lo=.6,hi=1;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img"},box),x=v=>padL+(W-padL-padR)*(v-lo)/(hi-lo);
+  [.6,.7,.8,.9,1].forEach(t=>{el("line",{x1:x(t),x2:x(t),y1:0,y2:H-22,stroke:"var(--grid)"},svg);el("text",{x:x(t),y:H-6,"text-anchor":"middle"},svg).textContent=(t*100)+"%"});
+  V.forEach((v,i)=>{const y=i*rowH+16;
+    el("text",{x:padL-8,y:y+4,"text-anchor":"end"},svg).textContent=v.vendor;
+    el("line",{x1:x(v.gold_acc_ci_low),x2:x(v.gold_acc_ci_high),y1:y,y2:y,stroke:COLOR[v.vendor_id],"stroke-width":2,"stroke-linecap":"butt"},svg);
+    el("circle",{cx:x(v.gold_accuracy),cy:y,r:5,fill:COLOR[v.vendor_id],stroke:"#fff","stroke-width":2},svg);
+    el("text",{x:x(v.gold_acc_ci_high)+8,y:y+4,class:"val"},svg).textContent=pct(v.gold_accuracy);
+    const hit=el("rect",{x:0,y:y-16,width:W,height:rowH,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",e=>showTip(e,`<b>${v.vendor}</b>${pct(v.gold_accuracy)} on ${v.gold_items} gold items<br>95% interval ${pct(v.gold_acc_ci_low)}–${pct(v.gold_acc_ci_high)}`));
+    hit.addEventListener("mouseleave",hideTip)})}
+function daily(V){const box=clear("c-daily");
+  const maxY=Math.max(...D.daily.map(d=>Math.max(d.delivered,d.target)))*1.1;
+  V.forEach(v=>{const rows=D.daily.filter(d=>d.vendor_id===v.vendor_id),wrap=document.createElement("div");box.appendChild(wrap);
+    wrap.innerHTML=`<div class="legend"><span><i class="sw" style="background:${COLOR[v.vendor_id]}"></i>${v.vendor}</span><span>${pct(v.on_time_day_rate)} of days on target</span></div>`;
+    const W=320,H=130,pl=30,pr=8,pt=6,pb=20,svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img"},wrap);
+    const x=i=>pl+(W-pl-pr)*i/(rows.length-1),y=val=>pt+(H-pt-pb)*(1-val/maxY);
+    [0,50,100,150].filter(t=>t<maxY).forEach(t=>{el("line",{x1:pl,x2:W-pr,y1:y(t),y2:y(t),stroke:"var(--grid)"},svg);el("text",{x:pl-4,y:y(t)+4,"text-anchor":"end"},svg).textContent=t});
+    el("text",{x:pl,y:H-4},svg).textContent=rows[0].date.slice(5);el("text",{x:W-pr,y:H-4,"text-anchor":"end"},svg).textContent=rows[rows.length-1].date.slice(5);
+    el("polyline",{points:rows.map((r,i)=>`${x(i)},${y(r.target)}`).join(" "),fill:"none",stroke:"var(--text-muted)","stroke-width":1.5,"stroke-dasharray":"4 4"},svg);
+    el("polyline",{points:rows.map((r,i)=>`${x(i)},${y(r.delivered)}`).join(" "),fill:"none",stroke:COLOR[v.vendor_id],"stroke-width":2,"stroke-linejoin":"round"},svg);
+    const cross=el("line",{y1:pt,y2:H-pb,stroke:"var(--text-muted)",opacity:0},svg),dot=el("circle",{r:4,fill:COLOR[v.vendor_id],stroke:"#fff","stroke-width":2,opacity:0},svg);
+    const hit=el("rect",{x:pl,y:0,width:W-pl-pr,height:H,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",e=>{const r=svg.getBoundingClientRect();let i=Math.round(((e.clientX-r.left)*W/r.width-pl)/(W-pl-pr)*(rows.length-1));i=Math.max(0,Math.min(rows.length-1,i));
+      cross.setAttribute("x1",x(i));cross.setAttribute("x2",x(i));cross.setAttribute("opacity",.5);dot.setAttribute("cx",x(i));dot.setAttribute("cy",y(rows[i].delivered));dot.setAttribute("opacity",1);
+      showTip(e,`<b>${v.vendor} · ${rows[i].date}</b>Delivered ${rows[i].delivered} · target ${rows[i].target}`)});
+    hit.addEventListener("mouseleave",()=>{hideTip();cross.setAttribute("opacity",0);dot.setAttribute("opacity",0)})})}
+
+function render(){
+  const V=ALL.filter(v=>state.on.has(v.vendor_id));
+  const ranked=[...V].sort((a,b)=>score(b)-score(a)), bestLift=[...V].sort((a,b)=>b.lift_per_1k_usd-a.lift_per_1k_usd)[0];
+  const spend=V.reduce((s,v)=>s+v.spend,0), labels=V.reduce((s,v)=>s+v.labels,0);
+  const flags=D.flagged_annotators.filter(a=>state.on.has(a.vendor_id));
+  document.getElementById("kpis").innerHTML=[
+    ["Spend",`$${num(spend)}`,`${V.length} vendor${V.length>1?"s":""} selected`],
+    ["Labels delivered",num(labels),`${T.tasks.toLocaleString()} tasks in pilot`],
+    ["Top scorecard",ranked[0].vendor.replace("Vendor ",""),`${score(ranked[0]).toFixed(1)} / 100 · ${state.weights.split(" ")[0].toLowerCase()} weights`],
+    ["Best value",bestLift.vendor.replace("Vendor ",""),`${bestLift.lift_per_1k_usd.toFixed(2)} eval pts per $1k`],
+    ["Flagged annotators",String(flags.length),flags.length?flags.map(f=>f.annotator_id).join(", "):"none"]
+  ].map(k=>`<div class="kpi"><div class="label">${k[0]}</div><div class="value">${k[1]}</div><div class="detail">${k[2]}</div></div>`).join("");
+  hbar("c-cpat",V,"cost_per_accepted_task",fmt$,v=>`<b>${v.vendor}</b>Price ${fmt$(v.price_per_task)} · acceptance ${pct(v.est_acceptance_rate)}`);
+  hbar("c-lift",V,"lift_per_1k_usd",x=>x.toFixed(2)+" pts",v=>`<b>${v.vendor}</b>Lift ${v.eval_lift_pts.toFixed(2)} pts on $${num(v.spend)}`);
+  hbar("c-kappa",V,"kappa",x=>x.toFixed(2),v=>`<b>${v.vendor}</b>κ on ${v.overlap_pairs} double-labeled tasks`);
+  gold(V); daily(V);
+  const [q,d,c]=WEIGHTS[state.weights];
+  document.getElementById("weights-note").textContent=`Weights: quality ${Math.round(q*100)}% · delivery ${Math.round(d*100)}% · cost ${Math.round(c*100)}%. Metrics scored 0–100 vs the best of all three vendors.`;
+  const head=["Vendor","Price","Gold acc.","κ","Cost / accepted","On-time days","Lift / $1k","Quality","Delivery","Cost","Total","Target price"];
+  const top=ranked[0].vendor_id;
+  document.getElementById("t-score").innerHTML=`<thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>`+
+    ranked.map(v=>`<tr><td><span class="sw" style="background:${COLOR[v.vendor_id]};margin-right:6px"></span>${v.vendor}</td><td>${fmt$(v.price_per_task)}</td><td>${pct(v.gold_accuracy)}</td><td>${v.kappa.toFixed(2)}</td><td>${fmt$(v.cost_per_accepted_task)}</td><td>${pct(v.on_time_day_rate)}</td><td>${v.lift_per_1k_usd.toFixed(2)}</td><td>${v.q_score.toFixed(0)}</td><td>${v.d_score.toFixed(0)}</td><td>${v.c_score.toFixed(0)}</td><td class="${v.vendor_id===top?"win":""}">${score(v).toFixed(1)}</td><td>${fmt$(v.target_price_to_match_best)}</td></tr>`).join("")+"</tbody>";
+  const t=document.getElementById("t-flags");
+  t.innerHTML=flags.length?`<thead><tr><th>Annotator</th><th>Gold acc.</th><th>Speed</th></tr></thead><tbody>`+
+    flags.map(a=>`<tr><td><span class="flag">⚠</span> ${a.annotator_id}</td><td>${pct(a.gold_accuracy)} (${a.gold_items})</td><td>${(a.speed_vs_vendor*100).toFixed(0)}%</td></tr>`).join("")+
+    `</tbody><caption style="caption-side:bottom;text-align:left;padding-top:8px;color:var(--text-muted);font-size:12px">${flags[0].flag}</caption>`
+    :`<tbody><tr><td class="empty">No flagged annotators for the selected vendors.</td></tr></tbody>`;
+}
+render();
+</script>
+</body>
+</html>

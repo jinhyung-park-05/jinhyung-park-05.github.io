@@ -370,9 +370,14 @@ a {
   font-weight: 400;
   border-bottom: 1px solid #fff;
 }
+.about__text__description:not(:first-of-type) {
+  color: #fff;
+  font-size: 1.15em;
+  font-weight: 300;
+  line-height: 1.5;
+}
 .about__text__description:last-of-type {
   color: #fff;
-  font-size: 1.3em;
   font-weight: 300;
 }
 .about__btn {
