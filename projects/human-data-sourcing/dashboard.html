@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human-Data Vendor Sourcing Analysis (simulated)</title>
+<style>
+.viz-root{color-scheme:light;
+  --surface-0:#f4f3f0;--surface-1:#fcfcfb;--border:#e2e1dc;--grid:#ebeae6;
+  --text-primary:#0b0b0b;--text-secondary:#52514e;--text-muted:#7a7974;
+  --series-1:#2a78d6;--series-2:#eb6834;--series-3:#1baf7a;--flag:#b3261e}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .viz-root{color-scheme:dark;
+  --surface-0:#121211;--surface-1:#1a1a19;--border:#33322f;--grid:#2a2a28;
+  --text-primary:#f0efec;--text-secondary:#c3c2b7;--text-muted:#8d8c85;
+  --series-1:#3987e5;--series-2:#d95926;--series-3:#199e70;--flag:#f2b8b5}}
+:root[data-theme="dark"] .viz-root{color-scheme:dark;
+  --surface-0:#121211;--surface-1:#1a1a19;--border:#33322f;--grid:#2a2a28;
+  --text-primary:#f0efec;--text-secondary:#c3c2b7;--text-muted:#8d8c85;
+  --series-1:#3987e5;--series-2:#d95926;--series-3:#199e70;--flag:#f2b8b5}
+*{box-sizing:border-box}
+body{margin:0}
+.viz-root{background:var(--surface-0);color:var(--text-primary);min-height:100vh;
+  font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:15px;margin:0 0 2px}
+.sub{color:var(--text-secondary);margin:0 0 4px}
+.note{color:var(--text-muted);font-size:12px;margin:0 0 12px}
+.badge{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 10px;
+  font-size:12px;color:var(--text-secondary);margin:8px 0 18px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px}
+.kpis{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:16px}
+.kpi .label{color:var(--text-secondary);font-size:12px}
+.kpi .value{font-size:26px;font-weight:600;margin-top:2px}
+.kpi .detail{color:var(--text-muted);font-size:12px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);margin:6px 0 4px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--text-secondary);font-size:11px}
+svg .val{fill:var(--text-primary);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--grid);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--text-secondary);font-weight:500}
+.scroll{overflow-x:auto}
+.tip{position:fixed;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);
+  border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);
+  opacity:0;transition:opacity .1s;max-width:240px;color:var(--text-primary);z-index:10}
+.tip b{display:block;margin-bottom:2px}
+.flag{color:var(--flag);font-weight:600}
+.full{grid-column:1/-1}
+.small-mult{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+  <h1>Human-Data Vendor Sourcing Analysis</h1>
+  <p class="sub">Pairwise preference labels for agentic tool-use transcripts · 3 vendors · 3 weeks</p>
+  <span class="badge">Simulated data · fictional vendors · portfolio project</span>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Cost per accepted task</h2>
+      <p class="note">Price ÷ estimated acceptance rate. The sticker price hides rework.</p>
+      <div id="c-cpat"></div>
+    </div>
+    <div class="card">
+      <h2>Eval lift per $1,000 spent</h2>
+      <p class="note">Held-out tool-use eval points gained per $1k. The value test.</p>
+      <div id="c-lift"></div>
+    </div>
+    <div class="card">
+      <h2>Gold-set accuracy, with 95% interval</h2>
+      <p class="note">Small gold sets mean wide intervals. Don't over-read close gaps.</p>
+      <div id="c-gold"></div>
+    </div>
+    <div class="card">
+      <h2>Agreement between annotators (Cohen's κ)</h2>
+      <p class="note">On double-labeled tasks. Low κ points to vague guidelines or low effort.</p>
+      <div id="c-kappa"></div>
+    </div>
+    <div class="card full">
+      <h2>Daily delivery vs target</h2>
+      <p class="note">Solid line = tasks delivered · dashed line = daily target.</p>
+      <div class="small-mult" id="c-daily"></div>
+    </div>
+    <div class="card full">
+      <h2>Weighted scorecard</h2>
+      <p class="note" id="weights-note"></p>
+      <div class="scroll"><table id="t-score"></table></div>
+    </div>
+    <div class="card full">
+      <h2>Annotator flags</h2>
+      <p class="note">Flagged when gold accuracy &lt; 65% (≥5 gold items) or median time &lt; 50% of the vendor median.</p>
+      <div class="scroll"><table id="t-flags"></table></div>
+    </div>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+</div>
+<script>
+const D = {"weights": {"quality": 0.5, "delivery": 0.25, "cost": 0.25}, "quality_split": {"gold_accuracy": 0.7, "agreement": 0.3}, "baseline_eval": 62.0, "vendors": [{"vendor_id": "V1", "vendor": "Vendor Alpha", "labels": 1714, "price_per_task": 3.1, "spend": 5313.4, "gold_items": 118, "gold_accuracy": 0.7627, "gold_acc_ci_low": 0.6784, "gold_acc_ci_high": 0.8304, "overlap_pairs": 214, "kappa": 0.3585, "audits": 137, "audit_pass_rate": 0.6715, "est_acceptance_rate": 0.7137, "cost_per_accepted_task": 4.3434, "on_time_day_rate": 0.8667, "volume_vs_commit": 1.0, "median_secs": 136.5, "eval_score": 63.04, "eval_lift_pts": 1.04, "lift_per_1k_usd": 0.1957, "q_score": 72.8225, "d_score": 100.0, "c_score": 100.0, "total_score": 86.4112, "target_price_to_match_best": 3.1, "price_change_needed_pct": 0.0}, {"vendor_id": "V2", "vendor": "Vendor Beta", "labels": 1354, "price_per_task": 4.2, "spend": 5686.8, "gold_items": 87, "gold_accuracy": 0.8621, "gold_acc_ci_low": 0.7742, "gold_acc_ci_high": 0.9193, "overlap_pairs": 154, "kappa": 0.7222, "audits": 118, "audit_pass_rate": 0.839, "est_acceptance_rate": 0.8488, "cost_per_accepted_task": 4.9483, "on_time_day_rate": 0.8667, "volume_vs_commit": 1.0, "median_secs": 159.95, "eval_score": 63.73, "eval_lift_pts": 1.73, "lift_per_1k_usd": 0.3042, "q_score": 94.1601, "d_score": 100.0, "c_score": 87.7762, "total_score": 94.0241, "target_price_to_match_best": 3.6866, "price_change_needed_pct": -12.2238}, {"vendor_id": "V3", "vendor": "Vendor Gamma", "labels": 1024, "price_per_task": 5.6, "spend": 5734.4, "gold_items": 69, "gold_accuracy": 0.8986, "gold_acc_ci_low": 0.8051, "gold_acc_ci_high": 0.95, "overlap_pairs": 124, "kappa": 0.8023, "audits": 109, "audit_pass_rate": 0.8716, "est_acceptance_rate": 0.882, "cost_per_accepted_task": 6.349, "on_time_day_rate": 0.8, "volume_vs_commit": 1.0, "median_secs": 198.05, "eval_score": 63.4, "eval_lift_pts": 1.4, "lift_per_1k_usd": 0.2441, "q_score": 100.0, "d_score": 92.3077, "c_score": 68.4104, "total_score": 90.1795, "target_price_to_match_best": 3.831, "price_change_needed_pct": -31.5896}], "flagged_annotators": [{"annotator_id": "V1-A10", "vendor_id": "V1", "labels": 179, "gold_items": 13, "gold_accuracy": 0.462, "median_secs": 34.6, "speed_vs_vendor": 0.253, "flag_low_accuracy": true, "flag_too_fast": true, "flag": "Low accuracy + too fast: likely low effort"}], "daily": [{"vendor_id": "V1", "date": "2026-10-05", "target": 100, "delivered": 104}, {"vendor_id": "V1", "date": "2026-10-06", "target": 100, "delivered": 109}, {"vendor_id": "V1", "date": "2026-10-07", "target": 100, "delivered": 106}, {"vendor_id": "V1", "date": "2026-10-08", "target": 100, "delivered": 107}, {"vendor_id": "V1", "date": "2026-10-09", "target": 100, "delivered": 106}, {"vendor_id": "V1", "date": "2026-10-12", "target": 100, "delivered": 103}, {"vendor_id": "V1", "date": "2026-10-13", "target": 100, "delivered": 105}, {"vendor_id": "V1", "date": "2026-10-14", "target": 100, "delivered": 101}, {"vendor_id": "V1", "date": "2026-10-15", "target": 100, "delivered": 109}, {"vendor_id": "V1", "date": "2026-10-16", "target": 100, "delivered": 104}, {"vendor_id": "V1", "date": "2026-10-19", "target": 100, "delivered": 100}, {"vendor_id": "V1", "date": "2026-10-20", "target": 100, "delivered": 70}, {"vendor_id": "V1", "date": "2026-10-21", "target": 100, "delivered": 103}, {"vendor_id": "V1", "date": "2026-10-22", "target": 100, "delivered": 63}, {"vendor_id": "V1", "date": "2026-10-23", "target": 100, "delivered": 110}, {"vendor_id": "V2", "date": "2026-10-05", "target": 80, "delivered": 84}, {"vendor_id": "V2", "date": "2026-10-06", "target": 80, "delivered": 81}, {"vendor_id": "V2", "date": "2026-10-07", "target": 80, "delivered": 88}, {"vendor_id": "V2", "date": "2026-10-08", "target": 80, "delivered": 52}, {"vendor_id": "V2", "date": "2026-10-09", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-12", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-13", "target": 80, "delivered": 81}, {"vendor_id": "V2", "date": "2026-10-14", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-15", "target": 80, "delivered": 83}, {"vendor_id": "V2", "date": "2026-10-16", "target": 80, "delivered": 85}, {"vendor_id": "V2", "date": "2026-10-19", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-20", "target": 80, "delivered": 82}, {"vendor_id": "V2", "date": "2026-10-21", "target": 80, "delivered": 84}, {"vendor_id": "V2", "date": "2026-10-22", "target": 80, "delivered": 88}, {"vendor_id": "V2", "date": "2026-10-23", "target": 80, "delivered": 64}, {"vendor_id": "V3", "date": "2026-10-05", "target": 60, "delivered": 47}, {"vendor_id": "V3", "date": "2026-10-06", "target": 60, "delivered": 64}, {"vendor_id": "V3", "date": "2026-10-07", "target": 60, "delivered": 64}, {"vendor_id": "V3", "date": "2026-10-08", "target": 60, "delivered": 63}, {"vendor_id": "V3", "date": "2026-10-09", "target": 60, "delivered": 61}, {"vendor_id": "V3", "date": "2026-10-12", "target": 60, "delivered": 62}, {"vendor_id": "V3", "date": "2026-10-13", "target": 60, "delivered": 61}, {"vendor_id": "V3", "date": "2026-10-14", "target": 60, "delivered": 62}, {"vendor_id": "V3", "date": "2026-10-15", "target": 60, "delivered": 60}, {"vendor_id": "V3", "date": "2026-10-16", "target": 60, "delivered": 47}, {"vendor_id": "V3", "date": "2026-10-19", "target": 60, "delivered": 63}, {"vendor_id": "V3", "date": "2026-10-20", "target": 60, "delivered": 62}, {"vendor_id": "V3", "date": "2026-10-21", "target": 60, "delivered": 65}, {"vendor_id": "V3", "date": "2026-10-22", "target": 60, "delivered": 60}, {"vendor_id": "V3", "date": "2026-10-23", "target": 60, "delivered": 59}]};
+const V = D.vendors;
+const COLOR = {V1:"var(--series-1)",V2:"var(--series-2)",V3:"var(--series-3)"};
+const fmt$ = x => "$" + x.toFixed(2);
+const pct = x => (100*x).toFixed(1) + "%";
+const tip = document.getElementById("tip");
+function showTip(e, html){tip.innerHTML=html;tip.style.opacity=1;
+  const x=Math.min(e.clientX+14, innerWidth-250), y=e.clientY+14; tip.style.left=x+"px";tip.style.top=y+"px";}
+function hideTip(){tip.style.opacity=0}
+const NS="http://www.w3.org/2000/svg";
+function el(tag, attrs, parent){const n=document.createElementNS(NS,tag);for(const k in attrs)n.setAttribute(k,attrs[k]);if(parent)parent.appendChild(n);return n}
+
+// KPI tiles
+(function(){
+  const best = [...V].sort((a,b)=>b.total_score-a.total_score)[0];
+  const bestLift = [...V].sort((a,b)=>b.lift_per_1k_usd-a.lift_per_1k_usd)[0];
+  const spend = V.reduce((s,v)=>s+v.spend,0), n = V.reduce((s,v)=>s+v.labels,0);
+  const tiles = [
+    ["Top scorecard vendor", best.vendor, `Score ${best.total_score.toFixed(1)} / 100`],
+    ["Best value (eval lift per $1k)", bestLift.vendor, `${bestLift.lift_per_1k_usd.toFixed(2)} pts per $1k`],
+    ["Total spend", "$"+Math.round(spend).toLocaleString(), `${n.toLocaleString()} labels delivered`],
+    ["Annotators flagged", String(D.flagged_annotators.length), "Review before next batch"],
+  ];
+  document.getElementById("kpis").innerHTML = tiles.map(t=>
+    `<div class="card kpi"><div class="label">${t[0]}</div><div class="value">${t[1]}</div><div class="detail">${t[2]}</div></div>`).join("");
+})();
+
+// Horizontal bar chart: one bar per vendor, direct-labeled
+function hbar(id, key, fmt, tipFn){
+  const W=440, rowH=34, padL=96, padR=64, H=V.length*rowH+8;
+  const max = Math.max(...V.map(v=>v[key]))*1.05;
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img"}, document.getElementById(id));
+  const x = val => padL + (W-padL-padR)*val/max;
+  V.forEach((v,i)=>{
+    const y=i*rowH+6, h=20;
+    el("text",{x:padL-8,y:y+h/2+4,"text-anchor":"end"},svg).textContent=v.vendor;
+    const w=Math.max(2,x(v[key])-padL);
+    el("rect",{x:padL,y:y,width:w,height:h,rx:4,fill:COLOR[v.vendor_id]},svg);
+    const t=el("text",{x:padL+w+6,y:y+h/2+4,class:"val"},svg); t.textContent=fmt(v[key]);
+    const hit=el("rect",{x:0,y:y-6,width:W,height:rowH,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",e=>showTip(e,tipFn(v)));hit.addEventListener("mouseleave",hideTip);
+  });
+}
+hbar("c-cpat","cost_per_accepted_task",fmt$,v=>`<b>${v.vendor}</b>Price ${fmt$(v.price_per_task)} · acceptance ${pct(v.est_acceptance_rate)}<br>Cost per accepted ${fmt$(v.cost_per_accepted_task)}`);
+hbar("c-lift","lift_per_1k_usd",x=>x.toFixed(2)+" pts",v=>`<b>${v.vendor}</b>Eval lift ${v.eval_lift_pts.toFixed(2)} pts on $${Math.round(v.spend).toLocaleString()} spend`);
+hbar("c-kappa","kappa",x=>x.toFixed(2),v=>`<b>${v.vendor}</b>κ ${v.kappa.toFixed(2)} on ${v.overlap_pairs} double-labeled tasks`);
+
+// Dot + interval chart for gold accuracy
+(function(){
+  const W=440,rowH=34,padL=96,padR=64,H=V.length*rowH+28, lo=0.6, hi=1.0;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img"},document.getElementById("c-gold"));
+  const x=val=>padL+(W-padL-padR)*(val-lo)/(hi-lo);
+  [0.6,0.7,0.8,0.9,1.0].forEach(t=>{el("line",{x1:x(t),x2:x(t),y1:0,y2:H-20,stroke:"var(--grid)"},svg);
+    el("text",{x:x(t),y:H-6,"text-anchor":"middle"},svg).textContent=(t*100)+"%";});
+  V.forEach((v,i)=>{const y=i*rowH+16;
+    el("text",{x:padL-8,y:y+4,"text-anchor":"end"},svg).textContent=v.vendor;
+    el("line",{x1:x(v.gold_acc_ci_low),x2:x(v.gold_acc_ci_high),y1:y,y2:y,stroke:COLOR[v.vendor_id],"stroke-width":2,"stroke-linecap":"round"},svg);
+    el("circle",{cx:x(v.gold_accuracy),cy:y,r:5,fill:COLOR[v.vendor_id],stroke:"var(--surface-1)","stroke-width":2},svg);
+    el("text",{x:x(v.gold_acc_ci_high)+8,y:y+4,class:"val"},svg).textContent=pct(v.gold_accuracy);
+    const hit=el("rect",{x:0,y:y-14,width:W,height:rowH,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",e=>showTip(e,`<b>${v.vendor}</b>${pct(v.gold_accuracy)} on ${v.gold_items} gold items<br>95% interval ${pct(v.gold_acc_ci_low)} – ${pct(v.gold_acc_ci_high)}`));
+    hit.addEventListener("mouseleave",hideTip);});
+})();
+
+// Small multiples: daily delivered vs target
+(function(){
+  const box=document.getElementById("c-daily");
+  const maxY=Math.max(...D.daily.map(d=>Math.max(d.delivered,d.target)))*1.1;
+  V.forEach(v=>{
+    const rows=D.daily.filter(d=>d.vendor_id===v.vendor_id);
+    const wrap=document.createElement("div"); box.appendChild(wrap);
+    wrap.innerHTML=`<div class="legend"><span><i class="sw" style="background:${COLOR[v.vendor_id]}"></i>${v.vendor}</span><span>${pct(v.on_time_day_rate)} of days on target</span></div>`;
+    const W=300,H=140,pl=30,pr=8,pt=8,pb=20;
+    const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,role:"img"},wrap);
+    const x=i=>pl+(W-pl-pr)*i/(rows.length-1), y=val=>pt+(H-pt-pb)*(1-val/maxY);
+    [0,50,100,150].filter(t=>t<maxY).forEach(t=>{el("line",{x1:pl,x2:W-pr,y1:y(t),y2:y(t),stroke:"var(--grid)"},svg);
+      el("text",{x:pl-4,y:y(t)+4,"text-anchor":"end"},svg).textContent=t;});
+    el("text",{x:pl,y:H-4},svg).textContent=rows[0].date.slice(5);
+    el("text",{x:W-pr,y:H-4,"text-anchor":"end"},svg).textContent=rows[rows.length-1].date.slice(5);
+    el("polyline",{points:rows.map((r,i)=>`${x(i)},${y(r.target)}`).join(" "),fill:"none",stroke:"var(--text-muted)","stroke-width":1.5,"stroke-dasharray":"4 4"},svg);
+    el("polyline",{points:rows.map((r,i)=>`${x(i)},${y(r.delivered)}`).join(" "),fill:"none",stroke:COLOR[v.vendor_id],"stroke-width":2,"stroke-linejoin":"round"},svg);
+    const cross=el("line",{y1:pt,y2:H-pb,stroke:"var(--text-muted)",opacity:0},svg);
+    const dot=el("circle",{r:4,fill:COLOR[v.vendor_id],stroke:"var(--surface-1)","stroke-width":2,opacity:0},svg);
+    const hit=el("rect",{x:pl,y:0,width:W-pl-pr,height:H,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",e=>{const r=svg.getBoundingClientRect();
+      const px=(e.clientX-r.left)*W/r.width; let i=Math.round((px-pl)/(W-pl-pr)*(rows.length-1)); i=Math.max(0,Math.min(rows.length-1,i));
+      cross.setAttribute("x1",x(i));cross.setAttribute("x2",x(i));cross.setAttribute("opacity",.5);
+      dot.setAttribute("cx",x(i));dot.setAttribute("cy",y(rows[i].delivered));dot.setAttribute("opacity",1);
+      showTip(e,`<b>${v.vendor} · ${rows[i].date}</b>Delivered ${rows[i].delivered} · target ${rows[i].target}`);});
+    hit.addEventListener("mouseleave",()=>{hideTip();cross.setAttribute("opacity",0);dot.setAttribute("opacity",0)});
+  });
+})();
+
+// Scorecard table
+(function(){
+  const w=D.weights;
+  document.getElementById("weights-note").textContent=
+    `Weights: quality ${w.quality*100}% (gold accuracy ${D.quality_split.gold_accuracy*100}% / agreement ${D.quality_split.agreement*100}%) · on-time delivery ${w.delivery*100}% · cost per accepted task ${w.cost*100}%. Each metric is scored 0–100 relative to the best vendor. Target price = price that would bring cost per accepted task down to the best vendor's.`;
+  const head=["Vendor","Price","Gold acc.","κ","Accept. rate","Cost / accepted","On-time days","Eval lift / $1k","Quality","Delivery","Cost","Total","Target price"];
+  const rows=V.map(v=>[`<span class="sw" style="background:${COLOR[v.vendor_id]};margin-right:6px"></span>${v.vendor}`,fmt$(v.price_per_task),pct(v.gold_accuracy),v.kappa.toFixed(2),pct(v.est_acceptance_rate),fmt$(v.cost_per_accepted_task),pct(v.on_time_day_rate),v.lift_per_1k_usd.toFixed(2),v.q_score.toFixed(0),v.d_score.toFixed(0),v.c_score.toFixed(0),`<b>${v.total_score.toFixed(1)}</b>`,fmt$(v.target_price_to_match_best)]);
+  document.getElementById("t-score").innerHTML=`<thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>`;
+})();
+
+// Flags table
+(function(){
+  const f=D.flagged_annotators, t=document.getElementById("t-flags");
+  if(!f.length){t.innerHTML="<tr><td>No annotators flagged.</td></tr>";return}
+  t.innerHTML=`<thead><tr><th>Annotator</th><th>Labels</th><th>Gold items</th><th>Gold acc.</th><th>Speed vs vendor</th><th>Flag</th></tr></thead><tbody>`+
+    f.map(a=>`<tr><td>${a.annotator_id}</td><td>${a.labels}</td><td>${a.gold_items}</td><td>${pct(a.gold_accuracy)}</td><td>${(a.speed_vs_vendor*100).toFixed(0)}%</td><td class="flag">⚠ ${a.flag}</td></tr>`).join("")+"</tbody>";
+})();
+</script>
+</body>
+</html>

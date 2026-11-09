@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Case study: evaluating human-data labeling vendors on quality, delivery, cost, and model-eval value (simulated data).">
+<meta name="author" content="Jin Hyung Park">
+<title>Human-Data Vendor Sourcing Analysis · Jin Hyung Park</title>
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,800|Source+Sans+Pro:300,400,600" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:#2d3149;font:18px/1.6 'Source Sans Pro',system-ui,sans-serif}
+  a{color:#446a9f}
+  .hero{background:#2d3149;color:#fff;padding:56px 24px 48px;text-align:center}
+  .hero .back{display:inline-block;color:#cfd2e2;text-decoration:none;font:14px 'Open Sans',sans-serif;margin-bottom:24px}
+  .hero h1{font:400 2.2em/1.2 'Open Sans',sans-serif;margin:0;text-transform:uppercase;letter-spacing:.5px}
+  .dot{display:inline-block;width:10px;height:10px;margin-left:6px;background:#ff789e}
+  .hero p{color:#cfd2e2;max-width:720px;margin:14px auto 0;font-weight:300;font-size:1.15em}
+  .badge{display:inline-block;margin-top:18px;padding:4px 14px;border:1px solid #cfd2e2;border-radius:999px;font:13px 'Open Sans',sans-serif;color:#cfd2e2}
+  .btns{margin-top:26px}
+  .btn{display:inline-block;margin:6px;padding:9px 22px;border:2px solid #fff;color:#fff;text-decoration:none;font:15px 'Open Sans',sans-serif;letter-spacing:.5px}
+  .btn.primary{background:#ff789e;border-color:#ff789e}
+  main{max-width:860px;margin:0 auto;padding:40px 24px 64px}
+  h2{font:400 1.45em 'Open Sans',sans-serif;color:#2d3149;margin:2.2em 0 .5em;padding-bottom:4px;border-bottom:2px solid #ff789e;display:inline-block}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:8px 0 0}
+  .fact{background:#f3f4f9;border-radius:10px;padding:14px 16px}
+  .fact b{display:block;font:600 1.5em 'Open Sans',sans-serif;color:#2d3149}
+  .fact span{font-size:.85em;color:#5a5f7d}
+  ul{padding-left:1.2em} li{margin:.35em 0}
+  .skills span{display:inline-block;margin:4px 6px 4px 0;padding:3px 12px;border-radius:999px;background:#8d94ba;color:#fff;font:13px 'Open Sans',sans-serif}
+  table{width:100%;border-collapse:collapse;font-size:.92em;margin-top:8px}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid #e3e4ee;vertical-align:top}
+  th{color:#5a5f7d;font-weight:600}
+  .frame{margin:18px -24px 0;border-top:1px solid #e3e4ee;border-bottom:1px solid #e3e4ee}
+  iframe{width:100%;height:1500px;border:0;display:block}
+  .note{font-size:.85em;color:#6b6f88}
+  blockquote{margin:1em 0;padding:12px 18px;background:#f3f4f9;border-left:4px solid #ff789e;border-radius:4px}
+  footer{background:#2d3149;color:#cfd2e2;text-align:center;padding:24px;font:14px 'Open Sans',sans-serif}
+  footer a{color:#fff}
+  @media(max-width:600px){body{font-size:16px}.hero h1{font-size:1.6em}iframe{height:2900px}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <a class="back" href="../../index.html#portfolio">← Back to portfolio</a>
+  <h1>Human-Data Vendor Sourcing<span class="dot"></span></h1>
+  <p>How I'd decide which labeling vendor gets the next batch of AI training data, using quality, delivery, cost, and whether the data actually improves the model.</p>
+  <span class="badge">Simulated data · fictional vendors</span>
+  <div class="btns">
+    <a class="btn primary" href="dashboard.html">Open dashboard</a>
+    <a class="btn" href="https://github.com/jinhyung-park-05/human-data-sourcing">View code</a>
+  </div>
+</header>
+
+<main>
+  <h2>The problem</h2>
+  <p>A research team needs pairwise preference labels for agentic tool-use transcripts: "which response used tools better, A, B, or a tie?" Three vendors labeled 3,600 tasks over three weeks. Before the next batch, the questions are: who gets the work, at what price, and what needs fixing?</p>
+  <div class="facts">
+    <div class="fact"><b>3,600</b><span>tasks · 4,092 labels</span></div>
+    <div class="fact"><b>3</b><span>vendors · 24 annotators</span></div>
+    <div class="fact"><b>$16.7K</b><span>simulated spend</span></div>
+    <div class="fact"><b>3 weeks</b><span>of daily delivery</span></div>
+  </div>
+
+  <h2>How I measured each vendor</h2>
+  <table>
+    <tr><th>Question</th><th>Metric</th><th>Why it matters</th></tr>
+    <tr><td>Are the labels right?</td><td>Accuracy on gold (known-answer) tasks, with a 95% interval</td><td>Small gold sets are noisy, so I show the range, not just the number.</td></tr>
+    <tr><td>Are the labels consistent?</td><td>Cohen's κ on tasks labeled twice</td><td>Low agreement means unclear guidelines or low effort, even when spot checks pass.</td></tr>
+    <tr><td>What does it really cost?</td><td>Cost per <i>accepted</i> task</td><td>Price ÷ acceptance rate. The sticker price hides rework.</td></tr>
+    <tr><td>Is it on time?</td><td>Share of days at or above the daily target</td><td>Research timelines depend on steady delivery.</td></tr>
+    <tr><td>Is the data worth buying?</td><td>Model eval points gained per $1,000</td><td>The point of buying data is a better model, not more labels.</td></tr>
+  </table>
+  <p class="note">These roll up into a weighted scorecard (quality 50%, delivery 25%, cost 25%), similar to supplier scorecards I've defined in sourcing work.</p>
+
+  <h2>What I found</h2>
+  <ul>
+    <li><b>The cheapest vendor wasn't the best buy.</b> Vendor Alpha had the lowest cost per accepted task ($4.34), but annotator agreement was low (κ 0.36) and it moved the model the least per dollar (0.20 eval points per $1k).</li>
+    <li><b>Vendor Beta gave the most value:</b> 0.30 eval points per $1k and the top scorecard (94 / 100), at a mid-range price.</li>
+    <li><b>Vendor Gamma had the highest quality</b> (κ 0.80, gold accuracy ~90%) but cost the most per accepted task ($6.35) and hit its daily target least often. Useful for the hardest tasks, not the bulk.</li>
+    <li><b>Beta and Gamma's gold accuracy overlap</b> once you show the 95% intervals. Agreement and eval lift are what separate them.</li>
+    <li><b>One annotator was flagged as likely low effort:</b> 46% gold accuracy at a quarter of the vendor's typical time per task.</li>
+  </ul>
+
+  <h2>Recommendation</h2>
+  <blockquote>Give most of the next batch to Beta, route the hardest tasks to Gamma, and keep Alpha on a smaller probation share. Before that, Alpha should remove or retrain the flagged annotator, re-audit their work, and join a calibration session. Raise Alpha's gold rate and re-decide after week one.</blockquote>
+
+  <h2>Dashboard</h2>
+  <p class="note">Interactive. Hover over bars and lines for details. <a href="dashboard.html">Open full screen</a>.</p>
+  <div class="frame"><iframe src="dashboard.html" title="Vendor sourcing dashboard" loading="lazy"></iframe></div>
+
+  <h2>Limits</h2>
+  <ul>
+    <li>All data is simulated, including the model-eval results. I built it to practice the decision, not to report real vendor performance.</li>
+    <li>One eval run per vendor; a real decision would need repeated runs before trusting a ~1-point lift.</li>
+    <li>The scorecard weights are a choice. Changing them can change the ranking, which is why the weights are stated up front.</li>
+  </ul>
+
+  <h2>Tools</h2>
+  <div class="skills"><span>Python</span><span>pandas</span><span>NumPy</span><span>Cohen's κ</span><span>Confidence intervals</span><span>Scorecards</span><span>Unit-cost modeling</span><span>HTML/SVG dashboard</span></div>
+</main>
+<footer>© Jin Hyung Park · <a href="../../index.html">Home</a> · <a href="https://github.com/jinhyung-park-05">GitHub</a></footer>
+</body>
+</html>
